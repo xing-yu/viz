@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Graph Page</title>
+
+	<!-- D3.js -->
+	<script src='https://d3js.org/d3.v5.min.js'></script>
+
+	<!-- bootstrap css -->
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+	<!-- toggle box -->
+	<link href="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.5.0/css/bootstrap4-toggle.min.css" rel="stylesheet">
+
+	<!-- bootstrap JS, Popper.js, jQuery-->
+	<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+
+	<!-- toggle box js -->
+	<script src="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.5.0/js/bootstrap4-toggle.min.js"></script>
+
+	<!-- css -->
+	<style type="text/css">
+		#control_bar{
+			height: 100px;
+			background-color: #F8F8F8;
+		}
+
+		#legend{
+			margin-top: 30px;
+		}
+
+		.head_block{
+			margin-top: 30px;
+		}
+
+		.legend_box{
+			height: 20px;
+			width: 20px;
+		}
+	</style>
+</head>
+<body>
+
+<!-- control area -->
+<div class="container-fluid" id="control_bar">
+
+	<div class = "row">
+
+		<div class = "col-lg-2">
+			<div class = "head_block">
+				<strong>Update Visualization: &nbsp</strong>
+				<input class = "rounded"
+					name="updateButton" 
+		        	type="button" 
+		        	value="Update" 
+		        	onclick="draw_graph(nodes, original_links)" />
+	        </div>
+	    </div>
+
+	    <div class = "col-lg-2" id = "slider">
+	    	<div class = "head_block">
+	    		<strong>Cut Words: &nbsp </strong><label id = "slider_v">50%</label>
+	    		<input type="range" class = "custom-range" min=1 max=99 value=50 class="slider" id="cutoff" oninput = "showVal(this.value)">
+	    	</div>
+	    </div>
+
+	    <div class = "col-lg-2" id = "toggle_button">
+	    	<div class = "head_block">
+	    		<strong>Show Words: &nbsp</strong>
+	  			<input type="checkbox" data-toggle="toggle" id = "show_label">
+	  		</div>
+	  	</div>
+
+	  	<div class = "col-lg-6 text-center" id = "help">
+	  		<div class = "row" id = "legend">
+	  		<strong>Legend: &nbsp</strong>
+	  		<div class = "legend_box" style = "background-color: red"></div>
+
+	  		<label>&nbsp context words &nbsp </label>
+
+	  		<div class = "legend_box" style = "background-color: blue"></div>
+
+	  		<label>&nbsp technology words &nbsp </label>
+
+	  		<div class = "legend_box" style = "background-color: green"></div>
+
+	  		<label>&nbsp person words &nbsp </label>
+
+	  		<div class = "legend_box" style = "background-color: yellow"></div>
+
+	  		<label>&nbsp activity words &nbsp </label>
+	  		</div>
+	  	</div>
+
+  	</div>
+
+</div>
+
+<!-- canvas area -->
+<div class="container-fluid">
+
+	<div class = "row">
+
+		<!-- graph column-->
+		<div class="col-lg-8 border" id = "graph_div">
+			
+			<svg id = "graph_svg">
+
+		</div>
+
+		<!-- texts column-->
+		<div class="col-lg-4 border" id = "text_div">
+
+		</div>
+
+	</div>
+
+</div>
+
+<script type="text/javascript">
+
+// slider show value function
+function showVal(value)
+{
+	outlet = document.getElementById("slider_v")
+	outlet.innerHTML = value.toString() + '%'
+}
+
+
+// toy dataset for text viz
+text_data = [[
+	{token: "Hey", tag: "O"},
+	{token: ",", tag: "O"},
+	{token: "I", tag: "person"},
+	{token: "'ve",  tag: "O"},
+	{token: "gone", tag: "O"},
+	{token: "through", tag: "O"},
+	{token: "a", tag: "O"},
+	{token: "knee", tag: "context"},
+	{token: "injury", tag: "context"},
+	{token: "(", tag: "O"},
+	{token: "missing", tag: "context"},
+	{token: "a", tag: "context"},
+	{token: "knee", tag: "context"},
+	{token: "ligament", tag: "context"},
+	{token: "now", tag: "O"},
+	{token: ",", tag: "O"},
+	{token: "will", tag: "O"},
+	{token: "probably", tag: "O"},
+	{token: "need", tag: "O"},
+	{token: "replacement", tag: "technology"},
+	{token: "down", tag: "O"},
+	{token: "the", tag: "O"},
+	{token: "road", tag: "O"},
+	{token: "...", tag: "O"},
+	{token: ".not", tag: "O"},
+	{token: "why", tag: "O"},
+	{token: "I", tag: "O"},
+	{token: "'m", tag: "O"},
+	{token: "on", tag: "O"},
+	{token: "this", tag: "O"},
+	{token: "sub", tag: "O"},
+	{token: ",", tag: "O"},
+	{token: "just", tag: "O"},
+	{token: "to", tag: "O"},
+	{token: "be", tag: "O"},
+	{token: "clear", tag: "O"},
+	{token: ")", tag: "O"},
+	{token: "and", tag: "O"},
+	{token: "had", tag: "O"},
+	{token: "some", tag: "O"},
+	{token: "thoughts/questions", tag: "O"},
+	{token: "for", tag: "O"},
+	{token: "you", tag: "O"},
+	{token: ".", tag: "O"}
+	],
+	[
+	{token: "Hey", tag: "O"},
+	{token: ",", tag: "O"},
+	{token: "I", tag: "person"},
+	{token: "'ve",  tag: "O"},
+	{token: "gone", tag: "O"},
+	{token: "through", tag: "O"},
+	{token: "a", tag: "O"},
+	{token: "knee", tag: "context"},
+	{token: "injury", tag: "context"},
+	{token: "(", tag: "O"},
+	{token: "missing", tag: "context"},
+	{token: "a", tag: "context"},
+	{token: "knee", tag: "context"},
+	{token: "ligament", tag: "context"},
+	{token: "now", tag: "O"},
+	{token: ",", tag: "O"},
+	{token: "will", tag: "O"},
+	{token: "probably", tag: "O"},
+	{token: "need", tag: "O"},
+	{token: "replacement", tag: "technology"},
+	{token: "down", tag: "O"},
+	{token: "the", tag: "O"},
+	{token: "road", tag: "O"},
+	{token: "...", tag: "O"},
+	{token: ".not", tag: "O"},
+	{token: "why", tag: "O"},
+	{token: "I", tag: "O"},
+	{token: "'m", tag: "O"},
+	{token: "on", tag: "O"},
+	{token: "this", tag: "O"},
+	{token: "sub", tag: "O"},
+	{token: ",", tag: "O"},
+	{token: "just", tag: "O"},
+	{token: "to", tag: "O"},
+	{token: "be", tag: "O"},
+	{token: "clear", tag: "O"},
+	{token: ")", tag: "O"},
+	{token: "and", tag: "O"},
+	{token: "had", tag: "O"},
+	{token: "some", tag: "O"},
+	{token: "thoughts/questions", tag: "O"},
+	{token: "for", tag: "O"},
+	{token: "you", tag: "O"},
+	{token: ".", tag: "O"}
+	]
+	];
+
+//	data for graph viz
+
+var data = {{ graph_data|safe }};
+var nodes = data.nodes;
+var original_links = data.links;
+
+// draw graph function
+function draw_graph(nodes, original_links)
+{
+
+	// get label show hide setting
+	label_on = document.getElementById("show_label").checked;
+
+
+	// get cutoff value
+	cutoff = document.getElementById("cutoff").value;
+	cutoff = cutoff / 100;
+
+	// filter links based on cutoff value
+	var links = [];
+
+	for (i = 0; i < original_links.length; i ++)
+	{
+		if (original_links[i].distance >= cutoff)
+		{
+			links.push(original_links[i])
+		}
+
+	};
+
+	// get graph width and height
+	var graph_width = document.getElementById("graph_div").clientWidth;
+
+	var graph_height = window.innerHeight - document.getElementById("control_bar").clientHeight;
+
+	// set graph svg size
+	svg = d3.select("#graph_svg")
+
+	svg.selectAll("*").remove()
+
+	svg.attr('width', graph_width)
+		.attr('height', graph_height)
+
+	// set simulation forces
+	const simulation = d3.forceSimulation()
+	  					.force('charge', d3.forceManyBody().strength(-20)) 
+	  					.force('center', d3.forceCenter(graph_width / 2, graph_height / 2))
+	  					.force('collision', d3.forceCollide().radius(function(node)
+	  						{
+	  							return node.frequency + 2;
+	  						}))
+	  					.force('link', d3.forceLink()
+	  					.id(function(node)
+	  					{
+	  						return node.token;
+	  					})
+	  					.distance(function(link)
+	  					{
+	  						return link.distance;
+	  					})
+	  					)
+
+	// set tick function
+	simulation.nodes(nodes).on('tick', ticked)
+
+	// set link force
+	simulation.force('link').links(links)
+
+	// create circles for nodes
+	nodeElements = svg.append('g')
+		.selectAll("circle")
+		.data(nodes)
+		.enter()
+		.append("circle")
+		.attr('r', function(d){
+			return get_node_size(d);
+		})
+		.attr('fill', function(d){
+			return get_node_color(d);
+		})
+
+	// create lines for links
+	linkElements = svg.append('g')
+		.selectAll("line")
+		.data(links)
+		.enter()
+		.append("line")
+		//.attr("stroke-width", 1)
+		//.attr('stroke', 'rgba(50, 50, 50, 0.6)')
+
+	// create texts for labels
+	labelElements = svg.append('g')
+		.selectAll("text")
+		.data(nodes)
+		.enter()
+		.append("text")
+		.text(function(d)
+		{
+			if (label_on == true)
+			{
+				return d.token
+			}else
+			{
+				return ''
+			}
+		})
+		.attr("fill", "black")
+		.attr("dx", function(d)
+		{
+			return d.frequency + 10
+		})
+		.attr("dy", function(d)
+		{
+			return d.frequency
+		})
+
+
+	// node size function
+	function get_node_size(node)
+	{
+		return node.frequency;
+	}
+
+	// node color function
+	function get_node_color(node)
+	{
+		if(node.tag == "person"){
+			return "green";
+		}
+		else if(node.tag == "technology"){
+			return "blue";
+		}
+		else if(node.tag == "context"){
+			return "red";
+		}
+		else{
+			return "yellow";
+		}
+	}
+
+	// tick function
+	function ticked()
+	{
+		nodeElements
+			.attr("cx", function(d){return d.x = Math.max(100, Math.min(graph_width - 100, d.x))})
+			.attr("cy", function(d){return d.y = Math.max(100, Math.min(graph_height - 100, d.y))});
+
+		labelElements
+			.attr("x", function(d){return d.x})
+			.attr("y", function(d){return d.y});
+
+		linkElements
+			.attr('x1', link => link.source.x)
+			.attr('y1', link => link.source.y)
+			.attr('x2', link => link.target.x)
+			.attr('y2', link => link.target.y);
+	}
+
+	// drag start function
+	function drag_start(node)
+	{
+		simulation.alphaTarget(0.3).restart()
+		node.fx = node.x
+		node.fy = node.y
+	}
+
+	// drag during drag function
+	function drag_drag(node)
+	{
+		node.fx = d3.event.x
+		node.fy = d3.event.y
+	}
+
+	// drag end function
+	function drag_end(node)
+	{
+		simulation.alphaTarget(0)
+		node.fx = null
+		node.fy = null
+	}
+
+	// create drag handler
+	var drag_handler = d3.drag()
+		.on("start", drag_start)
+		.on("drag", drag_drag)
+		.on("end", drag_end);
+			
+	// Create Event Handlers for mouse
+	function mouseover() 
+	{
+
+		// Use D3 to select element, change color and size
+	    d3.select(this).select("circle").transition()
+	    	.duration(750)
+	    	.attr("stroke", "orange")
+	    	.attr("stroke-width", "30")
+	}
+
+	// apply drag handler
+	drag_handler(nodeElements)
+}
+
+// draw text function
+function draw_text_svg(texts)
+{
+
+	// set size parameters
+	const text_width = document.getElementById("text_div").clientWidth;
+	const text_height = window.innerHeight - document.getElementById("control_bar").clientHeight;
+	const margin = 20;
+	var top_margin = 50;
+
+	// set svg size
+	text_svg = d3.select("#text_svg")
+
+	text_svg.selectAll("*").remove()
+
+	text_svg.attr("width", text_width)
+		.attr("height", text_height)
+		.attr("style", "font-size: 1.5em; overflow: visible;")
+
+	// parse all lines
+	for(i = 0; i < texts.length; i ++)
+	{
+
+		// one line of text
+		text = texts[i]
+
+		// create text element
+		var line = text_svg.append("text")
+				.attr("width", text_width)
+				.attr("x", margin)
+				.attr("y", top_margin)
+
+		// keep track of line starting position
+		var line_width_x = 0
+		var line_width_y = 0
+
+		// create tspan for each token
+		tspans = line.selectAll("tspan")
+			.data(text)
+			.enter()
+			.append("tspan")
+			.text(function(d)
+			{
+				return d.token + ' '
+			})
+			.attr("x", function()
+			{
+				w = d3.select(this).node()
+				.getComputedTextLength()
+
+				line_width_x += w
+			
+				// start a new line
+				if(line_width_x > text_width - 4 * margin)
+				{
+					line_width_x = 0
+					return margin
+				}
+			})
+			.attr("dy", function()
+			{
+
+				w = d3.select(this).node()
+				.getComputedTextLength()
+
+				line_width_y += w
+
+				// start a new line
+				if(line_width_y > text_width - 4 * margin)
+				{
+					line_width_y = 0
+					return "1.5em"
+				}
+
+				return 0
+			})
+			.attr("fill", function(d)
+			{
+				return tag(d)
+			})
+
+			// update top margin
+			v = line.node().getBBox().height
+
+			top_margin += v + 10
+	}
+
+	// tag labeling
+	function tag(line)
+	{
+		if(line.tag == "O")
+		{
+			return "black"
+		}
+		else if(line.tag == "context")
+		{
+			return "blue"
+		}
+		else if(line.tag == "person")
+		{
+			return "red"
+		}
+		else{
+			return "green"
+		}
+	}
+
+}
+
+// draw text function ver2 with divs
+function draw_text_div(texts)
+{
+	texts_div = d3.select("#text_div")
+
+	for (var i = 0; i < texts.length; i++)
+	{
+		text = texts[i]
+
+		box = texts_div.append("div")
+						.attr("class", "border rounded")
+						.attr("style", "margin-top: 2px; padding: 5px; border-color: light")
+
+		tspans = box.append("text").selectAll("span")
+			.data(text)
+			.enter()
+			.append("span")
+			.text(function(d)
+			{
+				return d.token + " "
+			})
+			.attr("style", function(d)
+			{
+				if(d.tag == "O")
+				{
+					return "color:black"
+				}
+				else if(d.tag == "context")
+				{
+					return "color: white; background-color:blue; border-radius: 2px"
+				}
+				else if(d.tag == "person")
+				{
+					return "color: white; background-color:red; border-radius: 2px"
+				}
+				else{
+					return "color: white; background-color:green; border-radius: 2px"
+				}
+			})
+
+	}
+
+
+}
+
+draw_graph(nodes, original_links)
+draw_text_div(text_data)
+
+</script>
+</body>
+</html>

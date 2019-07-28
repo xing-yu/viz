@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Text Page</title>
+	<script src='https://d3js.org/d3.v5.min.js'></script>
+	<script src="https://d3plus.org/js/d3plus.v2.0.0-alpha.22.full.min.js"></script>
+	<style>
+
+	tspan {
+	  word-wrap: break-word;
+	}
+	</style>
+</head>
+<body>
+
+</body>
+
+<script type="text/javascript">
+	
+	dataset = [[
+	{token: "Hey", tag: "O"},
+	{token: ",", tag: "O"},
+	{token: "I", tag: "person"},
+	{token: "'ve",  tag: "O"},
+	{token: "gone", tag: "O"},
+	{token: "through", tag: "O"},
+	{token: "a", tag: "O"},
+	{token: "knee", tag: "context"},
+	{token: "injury", tag: "context"},
+	{token: "(", tag: "O"},
+	{token: "missing", tag: "context"},
+	{token: "a", tag: "context"},
+	{token: "knee", tag: "context"},
+	{token: "ligament", tag: "context"},
+	{token: "now", tag: "O"},
+	{token: ",", tag: "O"},
+	{token: "will", tag: "O"},
+	{token: "probably", tag: "O"},
+	{token: "need", tag: "O"},
+	{token: "replacement", tag: "technology"},
+	{token: "down", tag: "O"},
+	{token: "the", tag: "O"},
+	{token: "road", tag: "O"},
+	{token: "...", tag: "O"},
+	{token: ".not", tag: "O"},
+	{token: "why", tag: "O"},
+	{token: "I", tag: "O"},
+	{token: "'m", tag: "O"},
+	{token: "on", tag: "O"},
+	{token: "this", tag: "O"},
+	{token: "sub", tag: "O"},
+	{token: ",", tag: "O"},
+	{token: "just", tag: "O"},
+	{token: "to", tag: "O"},
+	{token: "be", tag: "O"},
+	{token: "clear", tag: "O"},
+	{token: ")", tag: "O"},
+	{token: "and", tag: "O"},
+	{token: "had", tag: "O"},
+	{token: "some", tag: "O"},
+	{token: "thoughts/questions", tag: "O"},
+	{token: "for", tag: "O"},
+	{token: "you", tag: "O"},
+	{token: ".", tag: "O"}
+	],
+	[
+	{token: "Hey", tag: "O"},
+	{token: ",", tag: "O"},
+	{token: "I", tag: "person"},
+	{token: "'ve",  tag: "O"},
+	{token: "gone", tag: "O"},
+	{token: "through", tag: "O"},
+	{token: "a", tag: "O"},
+	{token: "knee", tag: "context"},
+	{token: "injury", tag: "context"},
+	{token: "(", tag: "O"},
+	{token: "missing", tag: "context"},
+	{token: "a", tag: "context"},
+	{token: "knee", tag: "context"},
+	{token: "ligament", tag: "context"},
+	{token: "now", tag: "O"},
+	{token: ",", tag: "O"},
+	{token: "will", tag: "O"},
+	{token: "probably", tag: "O"},
+	{token: "need", tag: "O"},
+	{token: "replacement", tag: "technology"},
+	{token: "down", tag: "O"},
+	{token: "the", tag: "O"},
+	{token: "road", tag: "O"},
+	{token: "...", tag: "O"},
+	{token: ".not", tag: "O"},
+	{token: "why", tag: "O"},
+	{token: "I", tag: "O"},
+	{token: "'m", tag: "O"},
+	{token: "on", tag: "O"},
+	{token: "this", tag: "O"},
+	{token: "sub", tag: "O"},
+	{token: ",", tag: "O"},
+	{token: "just", tag: "O"},
+	{token: "to", tag: "O"},
+	{token: "be", tag: "O"},
+	{token: "clear", tag: "O"},
+	{token: ")", tag: "O"},
+	{token: "and", tag: "O"},
+	{token: "had", tag: "O"},
+	{token: "some", tag: "O"},
+	{token: "thoughts/questions", tag: "O"},
+	{token: "for", tag: "O"},
+	{token: "you", tag: "O"},
+	{token: ".", tag: "O"}
+	]
+	];
+
+// tag labeling
+function tag(line)
+{
+	if(line.tag == "O")
+	{
+		return "black"
+	}
+	else if(line.tag == "context")
+	{
+		return "blue"
+	}
+	else if(line.tag == "person")
+	{
+		return "red"
+	}
+	else{
+		return "green"
+	}
+}
+
+// set svg
+const width = window.innerWidth
+const height = window.innerHeight
+const margin = 40
+
+const svg = d3.select("body").append("svg")
+		.attr('width', width)
+		.attr('height', height)
+		.attr("style", "font-size: 2em; overflow: visible;")
+
+// top position for each text
+var top_margin = margin
+
+// parse all lines
+for(i = 0; i < dataset.length; i ++){
+data = dataset[i]
+
+var line = svg.append("text")
+		.attr("width", width)
+		.attr("x", margin)
+		.attr("y", top_margin)
+
+var line_width_x = 0
+var line_width_y = 0
+
+tspans = line.selectAll("tspan")
+	.data(data)
+	.enter()
+	.append("tspan")
+	.text(function(d){
+		return d.token + ' '
+	})
+	.attr("x", function()
+	{
+		w = d3.select(this).node().getComputedTextLength()
+
+		line_width_x += w
+		
+		// start a new line
+		if(line_width_x > width - 2 * margin)
+		{
+			line_width_x = 0
+			return margin
+		}
+	})
+	.attr("dy", function()
+	{
+
+		w = d3.select(this).node().getComputedTextLength()
+
+		line_width_y += w
+
+		// start a new line
+		if(line_width_y > width - 2 * margin)
+		{
+			line_width_y = 0
+			console.log(line_width_y)
+			return "2em"
+		}
+
+		return 0
+	})
+	.attr("fill", function(d){
+		return tag(d)
+	})
+
+// update top
+v = line.node().getBBox().height
+
+top_margin += v + 10
+}
+
+// try without using data enter
+line = svg.append("text")
+		.attr("width", width)
+		.attr("x", margin)
+		.attr("y", top_margin)
+
+data = dataset[0]
+
+for (i = 0; i < data.length; i ++)
+{
+	
+	word = line.append("tspan")
+		.text(data[i].token + " ")
+
+	v = word.node().getBBox()
+
+	box = document.createElementNS("http://www.w3.org/2000/svg", "rect")
+	box.setAttribute("x", v.x)
+	box.setAttribute("y", v.y)
+	box.setAttribute("height", v.height)
+	box.setAttribute("width", v.width)
+	box.setAttribute("style", "stroke-width:1; stroke:rgb(0,0,0)")
+	box.setAttribute("fill", "green")
+
+	line.node().insertBefore(box, word.node())
+
+}
+
+</script>
+</html>
