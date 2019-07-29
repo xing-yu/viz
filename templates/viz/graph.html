@@ -31,6 +31,10 @@
 			margin-top: 30px;
 		}
 
+		#text_div{
+			overflow-y: scroll;
+		}
+
 		.head_block{
 			margin-top: 30px;
 		}
@@ -101,7 +105,7 @@
 <!-- canvas area -->
 <div class="container-fluid">
 
-	<div class = "row">
+	<div class = "row" id = "canvas">
 
 		<!-- graph column-->
 		<div class="col-lg-8 border" id = "graph_div">
@@ -121,6 +125,15 @@
 
 <script type="text/javascript">
 
+// resize canvas
+function resize_canvas()
+{
+	canvas = document.getElementById("canvas")
+	x = (window.innerHeight - document.getElementById("control_bar").clientHeight).toString() + "px";
+
+	canvas.style.height = x
+}
+
 // slider show value function
 function showVal(value)
 {
@@ -128,111 +141,20 @@ function showVal(value)
 	outlet.innerHTML = value.toString() + '%'
 }
 
-
-// toy dataset for text viz
-text_data = [[
-	{token: "Hey", tag: "O"},
-	{token: ",", tag: "O"},
-	{token: "I", tag: "person"},
-	{token: "'ve",  tag: "O"},
-	{token: "gone", tag: "O"},
-	{token: "through", tag: "O"},
-	{token: "a", tag: "O"},
-	{token: "knee", tag: "context"},
-	{token: "injury", tag: "context"},
-	{token: "(", tag: "O"},
-	{token: "missing", tag: "context"},
-	{token: "a", tag: "context"},
-	{token: "knee", tag: "context"},
-	{token: "ligament", tag: "context"},
-	{token: "now", tag: "O"},
-	{token: ",", tag: "O"},
-	{token: "will", tag: "O"},
-	{token: "probably", tag: "O"},
-	{token: "need", tag: "O"},
-	{token: "replacement", tag: "technology"},
-	{token: "down", tag: "O"},
-	{token: "the", tag: "O"},
-	{token: "road", tag: "O"},
-	{token: "...", tag: "O"},
-	{token: ".not", tag: "O"},
-	{token: "why", tag: "O"},
-	{token: "I", tag: "O"},
-	{token: "'m", tag: "O"},
-	{token: "on", tag: "O"},
-	{token: "this", tag: "O"},
-	{token: "sub", tag: "O"},
-	{token: ",", tag: "O"},
-	{token: "just", tag: "O"},
-	{token: "to", tag: "O"},
-	{token: "be", tag: "O"},
-	{token: "clear", tag: "O"},
-	{token: ")", tag: "O"},
-	{token: "and", tag: "O"},
-	{token: "had", tag: "O"},
-	{token: "some", tag: "O"},
-	{token: "thoughts/questions", tag: "O"},
-	{token: "for", tag: "O"},
-	{token: "you", tag: "O"},
-	{token: ".", tag: "O"}
-	],
-	[
-	{token: "Hey", tag: "O"},
-	{token: ",", tag: "O"},
-	{token: "I", tag: "person"},
-	{token: "'ve",  tag: "O"},
-	{token: "gone", tag: "O"},
-	{token: "through", tag: "O"},
-	{token: "a", tag: "O"},
-	{token: "knee", tag: "context"},
-	{token: "injury", tag: "context"},
-	{token: "(", tag: "O"},
-	{token: "missing", tag: "context"},
-	{token: "a", tag: "context"},
-	{token: "knee", tag: "context"},
-	{token: "ligament", tag: "context"},
-	{token: "now", tag: "O"},
-	{token: ",", tag: "O"},
-	{token: "will", tag: "O"},
-	{token: "probably", tag: "O"},
-	{token: "need", tag: "O"},
-	{token: "replacement", tag: "technology"},
-	{token: "down", tag: "O"},
-	{token: "the", tag: "O"},
-	{token: "road", tag: "O"},
-	{token: "...", tag: "O"},
-	{token: ".not", tag: "O"},
-	{token: "why", tag: "O"},
-	{token: "I", tag: "O"},
-	{token: "'m", tag: "O"},
-	{token: "on", tag: "O"},
-	{token: "this", tag: "O"},
-	{token: "sub", tag: "O"},
-	{token: ",", tag: "O"},
-	{token: "just", tag: "O"},
-	{token: "to", tag: "O"},
-	{token: "be", tag: "O"},
-	{token: "clear", tag: "O"},
-	{token: ")", tag: "O"},
-	{token: "and", tag: "O"},
-	{token: "had", tag: "O"},
-	{token: "some", tag: "O"},
-	{token: "thoughts/questions", tag: "O"},
-	{token: "for", tag: "O"},
-	{token: "you", tag: "O"},
-	{token: ".", tag: "O"}
-	]
-	];
-
 //	data for graph viz
 
 var data = {{ graph_data|safe }};
 var nodes = data.nodes;
 var original_links = data.links;
 
+// data for text viz
+var text_data = {{ texts_data|safe }}
+
 // draw graph function
 function draw_graph(nodes, original_links)
 {
+	//resize canvas if window size changed
+	resize_canvas()
 
 	// get label show hide setting
 	label_on = document.getElementById("show_label").checked;
@@ -426,127 +348,21 @@ function draw_graph(nodes, original_links)
 	drag_handler(nodeElements)
 }
 
-// draw text function
-function draw_text_svg(texts)
-{
-
-	// set size parameters
-	const text_width = document.getElementById("text_div").clientWidth;
-	const text_height = window.innerHeight - document.getElementById("control_bar").clientHeight;
-	const margin = 20;
-	var top_margin = 50;
-
-	// set svg size
-	text_svg = d3.select("#text_svg")
-
-	text_svg.selectAll("*").remove()
-
-	text_svg.attr("width", text_width)
-		.attr("height", text_height)
-		.attr("style", "font-size: 1.5em; overflow: visible;")
-
-	// parse all lines
-	for(i = 0; i < texts.length; i ++)
-	{
-
-		// one line of text
-		text = texts[i]
-
-		// create text element
-		var line = text_svg.append("text")
-				.attr("width", text_width)
-				.attr("x", margin)
-				.attr("y", top_margin)
-
-		// keep track of line starting position
-		var line_width_x = 0
-		var line_width_y = 0
-
-		// create tspan for each token
-		tspans = line.selectAll("tspan")
-			.data(text)
-			.enter()
-			.append("tspan")
-			.text(function(d)
-			{
-				return d.token + ' '
-			})
-			.attr("x", function()
-			{
-				w = d3.select(this).node()
-				.getComputedTextLength()
-
-				line_width_x += w
-			
-				// start a new line
-				if(line_width_x > text_width - 4 * margin)
-				{
-					line_width_x = 0
-					return margin
-				}
-			})
-			.attr("dy", function()
-			{
-
-				w = d3.select(this).node()
-				.getComputedTextLength()
-
-				line_width_y += w
-
-				// start a new line
-				if(line_width_y > text_width - 4 * margin)
-				{
-					line_width_y = 0
-					return "1.5em"
-				}
-
-				return 0
-			})
-			.attr("fill", function(d)
-			{
-				return tag(d)
-			})
-
-			// update top margin
-			v = line.node().getBBox().height
-
-			top_margin += v + 10
-	}
-
-	// tag labeling
-	function tag(line)
-	{
-		if(line.tag == "O")
-		{
-			return "black"
-		}
-		else if(line.tag == "context")
-		{
-			return "blue"
-		}
-		else if(line.tag == "person")
-		{
-			return "red"
-		}
-		else{
-			return "green"
-		}
-	}
-
-}
-
 // draw text function ver2 with divs
 function draw_text_div(texts)
 {
-	texts_div = d3.select("#text_div")
+	//resize canvas if window size changed
+	resize_canvas()
+
+	texts_div = d3.select("#text_div");
 
 	for (var i = 0; i < texts.length; i++)
 	{
-		text = texts[i]
+		text = texts[i];
 
 		box = texts_div.append("div")
 						.attr("class", "border rounded")
-						.attr("style", "margin-top: 2px; padding: 5px; border-color: light")
+						.attr("style", "margin-top: 2px; padding: 5px; border-color: light");
 
 		tspans = box.append("text").selectAll("span")
 			.data(text)
@@ -576,10 +392,9 @@ function draw_text_div(texts)
 			})
 
 	}
-
-
 }
 
+resize_canvas()
 draw_graph(nodes, original_links)
 draw_text_div(text_data)
 
