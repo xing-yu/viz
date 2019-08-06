@@ -43,42 +43,51 @@
 			height: 20px;
 			width: 20px;
 		}
+
+		.btn-search {
+			  background: #424242;
+			  border-radius: 0;
+			  color: #fff;
+			  border-width: 1px;
+			  border-style: solid;
+			  border-color: #1c1c1c;
+		}
+
+		.btn-search:link, .btn-search:visited {
+	  			color: #fff;
+		}
+
+		.btn-search:active, .btn-search:hover {
+	  			background: #1c1c1c;
+	  			color: #fff;
+		}
+
 	</style>
 </head>
 <body>
 
-<!-- control area -->
-<div class="container-fluid" id="control_bar">
-
-	<div class = "row">
-
-		<div class = "col-lg-2">
-			<div class = "head_block">
-				<strong>Update Visualization: &nbsp</strong>
-				<input class = "rounded"
-					name="updateButton" 
-		        	type="button" 
-		        	value="Update" 
-		        	onclick="draw_graph(nodes, original_links)" />
-	        </div>
-	    </div>
-
-	    <div class = "col-lg-2" id = "slider">
-	    	<div class = "head_block">
-	    		<strong>Cut Words: &nbsp </strong><label id = "slider_v">50%</label>
-	    		<input type="range" class = "custom-range" min=1 max=99 value=50 class="slider" id="cutoff" oninput = "showVal(this.value)">
-	    	</div>
-	    </div>
-
-	    <div class = "col-lg-2" id = "toggle_button">
-	    	<div class = "head_block">
-	    		<strong>Show Words: &nbsp</strong>
-	  			<input type="checkbox" data-toggle="toggle" id = "show_label">
-	  		</div>
-	  	</div>
-
-	  	<div class = "col-lg-6 text-center" id = "help">
-	  		<div class = "row" id = "legend">
+<!-- modal for help -->
+<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Help</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <ol>
+        	<li> The control area shows the update button, the slider for cutoff of word connections, the toggle button for showing the words, the legend, and the help button</li>
+        	<li> The graph on the left side is a summary based on text classification/NER of the texts presented on the right panel.</li>
+        	<li> The left area shows the connection of important words in users' online posts related to disabilities. Each node represents a word. the radius represents the frequency of appearance of the word. The color represent the PACT tag of the word. And two words are connected closely if they appear frequently with each other.</li>
+        	<li> Use the cutoff slider to break up words. By rasing the cutoff value, only strongly related words will stay together. You can click and drag to find out words that appeared together frequently.</li>
+        	<li> Use the toggle button to show or hide the text of each word.</li>
+        	<li> The legend shows the color coding of the words.</li>
+        	<li> The right side panel shows the texts of online posts. The words in the graph are extracted from the list.</li>
+        	<li> Useful word are also color coded. And the color legend is the same with the graph.</li>
+        </ol>
+        <div>
 	  		<strong>Legend: &nbsp</strong>
 	  		<div class = "legend_box" style = "background-color: red"></div>
 
@@ -92,10 +101,69 @@
 
 	  		<label>&nbsp person words &nbsp </label>
 
-	  		<div class = "legend_box" style = "background-color: yellow"></div>
+	  		<div class = "legend_box" style = "background-color: orange"></div>
 
 	  		<label>&nbsp activity words &nbsp </label>
 	  		</div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- control area -->
+<div class="container-fluid" id="control_bar">
+
+	<div class = "row">
+
+		<div class = "col-lg-2">
+			<div class = "head_block">
+				<input class = "btn btn-primary"
+					name="updateButton" 
+		        	type="button" 
+		        	value = "Data Visualization"
+		        	onclick="draw_graph(nodes, original_links)" />
+	        </div>
+	    </div>
+
+	    <div class = "col-lg-2" id = "slider">
+	    	<div class = "head_block">
+	    		<strong>Cut Words: &nbsp </strong><label id = "slider_v">50%</label>
+	    		<input type="range" class = "custom-range" min=1 max=99 value=50 class="slider" id="cutoff" oninput = "showVal(this.value)" onchange="draw_graph(nodes, original_links)">
+	    	</div>
+	    </div>
+
+	    <div class = "col-lg-2" id = "toggle_button">
+	    	<div class = "head_block">
+	    		<strong>Show Words: &nbsp</strong>
+	  			<input type="checkbox" data-toggle="toggle" id = "show_label" onchange="draw_graph(nodes, original_links)">
+	  		</div>
+	  	</div>
+
+	  	<div class = "col-lg-5 text-center" id = "search_bar">
+	  		<div class="head_block">
+	  			<div class="btn-group">
+	  			  <input type="text" class="form-control col-lg-8" placeholder="Search.." id = "search_query">
+	  			  <span>
+	  			  <button class = "btn btn-search" type = "button" onclick="draw_text_div(null, text_data)">
+	  			  	<i class="fa fa-search fa-fw"></i>search</button>
+	  			  </span>
+	  			  <span>
+	  			  <button class = "btn btn-search" type = "button" onclick="search_clear()">
+	  			  	<i class="fa fa-search fa-fw"></i>clear</button>
+	  			  </span>
+	  			</div>
+	  		</div>
+	  	</div>
+
+	  	<div class="col-lg-1 text-center" id = "help">
+	  		<!-- Button trigger modal -->
+	  		<div class = "head_block">
+				<button type="button" class="btn btn-light text-secondary" data-toggle="modal" data-target="#exampleModal">
+  					Help
+				</button>
+			</div>
 	  	</div>
 
   	</div>
@@ -154,7 +222,7 @@ var text_data = {{ texts_data|safe }}
 function draw_graph(nodes, original_links)
 {
 	//resize canvas if window size changed
-	resize_canvas()
+	resize_canvas();
 
 	// get label show hide setting
 	label_on = document.getElementById("show_label").checked;
@@ -171,7 +239,7 @@ function draw_graph(nodes, original_links)
 	{
 		if (original_links[i].distance >= cutoff)
 		{
-			links.push(original_links[i])
+			links.push(original_links[i]);
 		}
 
 	};
@@ -182,12 +250,12 @@ function draw_graph(nodes, original_links)
 	var graph_height = window.innerHeight - document.getElementById("control_bar").clientHeight;
 
 	// set graph svg size
-	svg = d3.select("#graph_svg")
+	svg = d3.select("#graph_svg");
 
-	svg.selectAll("*").remove()
+	svg.selectAll("*").remove();
 
 	svg.attr('width', graph_width)
-		.attr('height', graph_height)
+		.attr('height', graph_height);
 
 	// set simulation forces
 	const simulation = d3.forceSimulation()
@@ -206,26 +274,33 @@ function draw_graph(nodes, original_links)
 	  					{
 	  						return link.distance;
 	  					})
-	  					)
+	  					);
 
 	// set tick function
-	simulation.nodes(nodes).on('tick', ticked)
+	simulation.nodes(nodes).on('tick', ticked);
 
 	// set link force
-	simulation.force('link').links(links)
+	simulation.force('link').links(links);
 
 	// create circles for nodes
 	nodeElements = svg.append('g')
 		.selectAll("circle")
 		.data(nodes)
 		.enter()
-		.append("circle")
-		.attr('r', function(d){
-			return get_node_size(d);
-		})
-		.attr('fill', function(d){
-			return get_node_color(d);
-		})
+			.append("circle")
+				.attr('r', function(d)
+				{
+					return get_node_size(d);
+				})
+				.attr('fill', function(d)
+				{
+					return get_node_color(d);
+				})
+				.on("dblclick", function(d){
+					// draw text using selected token
+					document.getElementById("search_query").value = d.token;
+					draw_text_div(d.token, text_data);
+				});
 
 	// create lines for links
 	linkElements = svg.append('g')
@@ -241,26 +316,26 @@ function draw_graph(nodes, original_links)
 		.selectAll("text")
 		.data(nodes)
 		.enter()
-		.append("text")
-		.text(function(d)
-		{
-			if (label_on == true)
-			{
-				return d.token
-			}else
-			{
-				return ''
-			}
-		})
-		.attr("fill", "black")
-		.attr("dx", function(d)
-		{
-			return d.frequency + 10
-		})
-		.attr("dy", function(d)
-		{
-			return d.frequency
-		})
+			.append("text")
+				.text(function(d)
+				{
+					if (label_on == true)
+					{
+						return d.token
+					}else
+					{
+						return ''
+					}
+				})
+				.attr("fill", "black")
+				.attr("dx", function(d)
+				{
+					return d.frequency + 10
+				})
+				.attr("dy", function(d)
+				{
+					return d.frequency
+				})
 
 
 	// node size function
@@ -282,7 +357,7 @@ function draw_graph(nodes, original_links)
 			return "red";
 		}
 		else{
-			return "yellow";
+			return "orange";
 		}
 	}
 
@@ -349,16 +424,27 @@ function draw_graph(nodes, original_links)
 }
 
 // draw text function ver2 with divs
-function draw_text_div(texts)
+function draw_text_div(query, texts)
 {
 	//resize canvas if window size changed
 	resize_canvas()
 
 	texts_div = d3.select("#text_div");
 
-	for (var i = 0; i < texts.length; i++)
+	// reset contents in texts_div
+	texts_div.selectAll("*").remove();
+
+	// add search
+	search_results = search_text(query, texts);
+
+	if (search_results.length == 0)
 	{
-		text = texts[i];
+		return;
+	}
+
+	for (var i = 0; i < search_results.length; i++)
+	{
+		text = search_results[i];
 
 		box = texts_div.append("div")
 						.attr("class", "border rounded")
@@ -367,36 +453,90 @@ function draw_text_div(texts)
 		tspans = box.append("text").selectAll("span")
 			.data(text)
 			.enter()
-			.append("span")
-			.text(function(d)
-			{
-				return d.token + " "
-			})
-			.attr("style", function(d)
-			{
-				if(d.tag == "O")
-				{
-					return "color:black"
-				}
-				else if(d.tag == "context")
-				{
-					return "color: white; background-color:blue; border-radius: 2px"
-				}
-				else if(d.tag == "person")
-				{
-					return "color: white; background-color:red; border-radius: 2px"
-				}
-				else{
-					return "color: white; background-color:green; border-radius: 2px"
-				}
-			})
+				.append("span")
+					.text(function(d)
+					{
+						return d.token + " "
+					})
+						.attr("style", function(d)
+						{
+							if(d.tag == "O")
+							{
+								return "color:black"
+							}
+							else if(d.tag == "context")
+							{
+								return "color: white; background-color:red; border-radius: 2px"
+							}
+							else if(d.tag == "person")
+							{
+								return "color: white; background-color:green; border-radius: 2px"
+							}
+							else if(d.tag == "technology")
+							{
+								return "color: white; background-color:blue; border-radius: 2px"
+							}
+							else if(d.tag == "activity")
+							{
+								return "color: white; background-color:orange; border-radius: 2px"
+							}
+						})
 
 	}
 }
 
+// search text function
+function search_text(query, texts)
+{
+	if (query == null || query == "")
+	{
+		var query = document.getElementById("search_query").value ;
+	}
+
+	// no input search query
+	if (query == "")
+	{
+		return texts;
+	}
+
+	search_results = []
+
+	for (var i = 0; i < texts.length; i++)
+	{
+		line = texts[i];
+
+		is_target = false;
+
+		// check each word in line for match
+		for (var j = 0; j < line.length; j++)
+		{
+			word = line[j].token;
+
+			if (word.search(query) != -1)
+			{
+				is_target = true;
+			} 
+		}
+
+		if (is_target == true)
+		{
+			search_results.push(line);
+		}
+	}
+
+	return search_results;
+}
+
+// clear search
+function search_clear()
+{
+	document.getElementById('search_query').value = '';
+	draw_text_div(null, text_data)
+}
+
 resize_canvas()
 draw_graph(nodes, original_links)
-draw_text_div(text_data)
+draw_text_div("", text_data)
 
 </script>
 </body>
